@@ -1,19 +1,21 @@
 from fastapi import FastAPI
+
 from app.api.routes.users import router as users_router
+from app.api.routes.problems import router as problems_router
 
 
-app=FastAPI(
+app = FastAPI(
     title="AI DSA Coach",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
 app.include_router(users_router)
-
+app.include_router(problems_router)
 
 
 @app.get("/")
 async def root():
-    return{
-        "message":"AI DSA Coach API is running"
+    return {
+        "message": "AI DSA Coach API is running"
     }
