@@ -7,8 +7,11 @@ from app.api.deps import get_db
 from app.schemas.submission import (
     SubmissionCreate,
     SubmissionResponse,
+    SubmissionAnalysisResponse,
 )
 from app.services.submission_service import SubmissionService
+from app.services.ai_service import AIService
+from app.services.problem_service import ProblemService
 
 
 router = APIRouter(
@@ -19,16 +22,38 @@ router = APIRouter(
 
 @router.post(
     "/",
-    response_model=SubmissionResponse,
+    response_model=SubmissionAnalysisResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_submission(
     data: SubmissionCreate,
     db: AsyncSession = Depends(get_db),
 ):
-    return await SubmissionService.create_submission(
+    submission = await SubmissionService.create_submission(
         db,
         data,
+    )
+
+    problem = await ProblemService.get_problem(
+        db,
+        data.problem_id,
+    )
+
+    if not problem:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Problem not found",
+        )
+
+    analysis = await AIService.analyze_submission(
+        problem=problem.description,
+        code=data.code,
+        language=data.language,
+    )
+
+    return SubmissionAnalysisResponse(
+        submission=submission,
+        analysis=analysis,
     )
 
 

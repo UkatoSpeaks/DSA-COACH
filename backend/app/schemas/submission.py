@@ -26,3 +26,8 @@ class SubmissionResponse(BaseModel):
     submitted_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SubmissionAnalysisResponse(BaseModel):
+    submission: SubmissionResponse
+    analysis: str
