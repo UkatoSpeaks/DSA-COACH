@@ -8,7 +8,7 @@ class AIService:
         problem: str,
         code: str,
         language: str,
-    ) -> str:
+    ) -> dict:
 
         return await analyze_code(
             problem=problem,

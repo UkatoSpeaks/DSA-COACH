@@ -1,14 +1,16 @@
+import json
+
 from app.ai.hf_client import client
 
 
-MODEL ="Qwen/Qwen3-Next-80B-A3B-Instruct"
+MODEL = "Qwen/Qwen3-Next-80B-A3B-Instruct"
 
 
 async def analyze_code(
     problem: str,
     code: str,
     language: str,
-) -> str:
+) -> dict:
 
     prompt = f"""
 You are an expert DSA coding tutor.
@@ -24,13 +26,16 @@ Language:
 Student Code:
 {code}
 
-Give:
-1. Correctness
-2. Time complexity
-3. Space complexity
-4. Main issue or bug
-5. DSA concept involved
-6. One short hint
+Return ONLY valid JSON in exactly this format:
+
+{{
+    "correctness": "...",
+    "time_complexity": "...",
+    "space_complexity": "...",
+    "main_issue": "...",
+    "dsa_concept": "...",
+    "hint": "..."
+}}
 
 Do not provide the complete solution.
 """
@@ -46,4 +51,6 @@ Do not provide the complete solution.
         max_tokens=300,
     )
 
-    return response.choices[0].message.content
+    content = response.choices[0].message.content
+
+    return json.loads(content)

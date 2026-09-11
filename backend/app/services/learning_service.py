@@ -1,24 +1,62 @@
+from uuid import UUID
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.agents.misconception.agent import detect_misconception
 from app.agents.skill_detection.agent import detect_skill
+from app.services.skill_service import SkillService
+from app.services.user_skill_service import UserSkillService
 
 
 class LearningService:
 
     @staticmethod
-    def process_analysis(
-        analysis:dict,
-    )->dict:
+    async def process_analysis(
+        db: AsyncSession,
+        user_id: UUID,
+        analysis: dict,
+    ) -> dict:
 
-        misconception=detect_misconception(
-            analysis
+        misconception = detect_misconception(
+            analysis=analysis,
         )
 
-        skill=detect_skill(
-            analysis.get("dsa_concept","")
+        skill = detect_skill(
+            dsa_concept=analysis.get(
+                "dsa_concept",
+                "",
+            ),
         )
 
-        return{
-            "analysis":analysis,
-            "misconception":misconception.model_dump(),
-            "skill":skill.model_dump()
+        user_skill = None
+
+        if skill.skill != "Unknown":
+
+            skill_record = await SkillService.get_skill_by_name(
+                db,
+                skill.skill,
+            )
+
+            if skill_record:
+
+                user_skill = (
+                    await UserSkillService.get_user_skill_by_skill(
+                        db,
+                        user_id,
+                        skill_record.id,
+                    )
+                )
+
+        return {
+            "analysis": analysis,
+            "misconception": misconception.model_dump(),
+            "skill": skill.model_dump(),
+            "user_skill": (
+                {
+                    "id": str(user_skill.id),
+                    "proficiency": user_skill.proficiency,
+                }
+                if user_skill
+                else None
+            ),
         }
