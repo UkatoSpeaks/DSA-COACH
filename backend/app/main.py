@@ -11,6 +11,7 @@ from app.api.routes.learning_sessions import (
 from app.api.routes.recommendations import (
     router as recommendations_router,
 )
+from app.api.routes.ai import router as ai_router
 
 app = FastAPI(
     title="AI DSA Coach",
@@ -25,6 +26,7 @@ app.include_router(user_skills_router)
 app.include_router(submissions_router)
 app.include_router(learning_sessions_router)
 app.include_router(recommendations_router)
+app.include_router(ai_router)
 
 @app.get("/")
 async def root():
