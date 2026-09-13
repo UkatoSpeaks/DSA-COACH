@@ -22,10 +22,7 @@ class LearningService:
         )
 
         skill = detect_skill(
-            dsa_concept=analysis.get(
-                "dsa_concept",
-                "",
-            ),
+            dsa_concept=analysis.get("dsa_concept", ""),
         )
 
         user_skill = None
@@ -47,6 +44,29 @@ class LearningService:
                     )
                 )
 
+                if user_skill:
+                    current = user_skill.proficiency
+
+                    if misconception.has_misconception:
+                        new_proficiency = max(
+                            0.0,
+                            current - 2.0,
+                        )
+                    else:
+                        new_proficiency = min(
+                            100.0,
+                            current + 2.0,
+                        )
+
+                    user_skill = (
+                        await UserSkillService.update_proficiency(
+                            db,
+                            user_id,
+                            skill_record.id,
+                            new_proficiency,
+                        )
+                    )
+
         return {
             "analysis": analysis,
             "misconception": misconception.model_dump(),
@@ -54,6 +74,7 @@ class LearningService:
             "user_skill": (
                 {
                     "id": str(user_skill.id),
+                    "skill_id": str(user_skill.skill_id),
                     "proficiency": user_skill.proficiency,
                 }
                 if user_skill

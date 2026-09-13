@@ -12,6 +12,7 @@ from app.schemas.submission import (
 from app.services.submission_service import SubmissionService
 from app.services.ai_service import AIService
 from app.services.problem_service import ProblemService
+from app.services.learning_service import LearningService
 
 
 router = APIRouter(
@@ -51,9 +52,15 @@ async def create_submission(
         language=data.language,
     )
 
+    learning_result = await LearningService.process_analysis(
+        db=db,
+        user_id=data.user_id,
+        analysis=analysis,
+    )
+
     return SubmissionAnalysisResponse(
         submission=submission,
-        analysis=analysis,
+        analysis=learning_result,
     )
 
 
